@@ -1,0 +1,25 @@
+# Python Cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+#Virtual Environment
+.venv/
+
+# Skylos Cache
+.skylos/
+
+# Playwright Browser Bundles
+playwright_browsers/
+
+# Third Party Resources
+resources/Forest-ttk-theme/
+
+# PyInstaller build artifacts
+build/
+dist/
+*.spec
+
+# Logs
+*.log

@@ -1,0 +1,15 @@
+# API and HTTP
+requests
+keyring
+
+# Database and caching
+numpy  # For fingerprinting
+
+# Browser automation
+playwright
+
+# Build tools (for development/build only)
+pyinstaller
+
+# Optional utilities
+send2trash

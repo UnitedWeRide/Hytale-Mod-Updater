@@ -1,0 +1,141 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hytale-mod-updater"
+version = "1.0.0"
+description = "Hytale Mod Updater - A tool to manage and update Hytale mods from CurseForge"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+authors = [
+    {name = "UnitedWeRide"}
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+dependencies = [
+    "requests",
+    "keyring",
+    "numpy",
+    "playwright",
+    "send2trash",
+]
+
+[project.scripts]
+hytale-mod-updater = "main:main"
+
+[tool.setuptools]
+packages = [
+    "src",
+    "src.core",
+    "src.ui",
+    "src.services",
+    "src.config",
+    "src.utils",     
+]
+
+[tool.setuptools.package-dir]
+"" = "src"
+
+[project.optional-dependencies]
+test = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+]
+
+[tool.skylos]
+# Quality thresholds
+complexity = 15
+nesting = 4
+max_args = 6
+max_lines = 100
+
+# Whitelist patterns for framework-aware detection
+[tool.skylos.whitelist]
+names = [
+    "services.*",       # Internal services module
+    "ui.*",             # UI modules
+    "utils.*",          # Utility modules
+    "_callback",        # Callback functions
+    "_process_progress_updates_sync",  # Called via root.after() callback
+    "_apply_theme_to_window",          # Called via root.after() callback
+    "delete_backup",                   # Public API method
+    "remove_entry",                    # Public API method
+    "submit_download",                 # Used via thread submission
+    "is_running",                      # Status checking method
+    "format_fingerprint",              # Display utility
+    "format_size",                     # Display utility
+    "_process_chunks",                 # Internal helper for fingerprint
+    "ModSelectionDialog",              # UI dialog class
+    "PlaywrightThreadManager",         # Playwright thread management class
+    "_format_size",                    # Display utility (private)
+    "_process_mod",                    # Internal helper for database processing
+]
+
+# Whitelist documented reasons
+[tool.skylos.whitelist.documented]
+"services.*" = "Absolute imports for frozen executable mode"
+"ui.*" = "UI modules loaded dynamically"
+"utils.*" = "Utility modules for frozen executable"
+"_process_progress_updates_sync" = "Called via root.after() callback in async processing"
+"_apply_theme_to_window" = "Called via root.after() callback for theme application"
+"delete_backup" = "Public API method for external backup management"
+"remove_entry" = "Public API method for cache management"
+"submit_download" = "Used via thread queue submission"
+"is_running" = "Status checking for Playwright thread"
+"format_fingerprint" = "Display utility for fingerprint formatting"
+"format_size" = "Display utility for file size formatting"
+"_process_chunks" = "Internal helper for vectorized fingerprint computation"
+"ModSelectionDialog" = "UI dialog class for mod selection"
+"PlaywrightThreadManager" = "Playwright thread management class for concurrent downloads"
+"_format_size" = "Display utility for file size formatting (private)"
+"_process_mod" = "Internal helper for database processing via ThreadPoolExecutor"
+
+# Temporary suppressions for framework/dynamic usage
+[tool.skylos.whitelist.temporary]
+"get_module_file_attribute" = { reason = "PyInstaller hook utility", expires = "2027-01-01" }
+"sys" = { reason = "Conditional import for PyInstaller hook", expires = "2027-01-01" }
+"compute_fingerprint" = { reason = "Conditional import in app.py", expires = "2027-01-01" }
+"shutil" = { reason = "Conditional import in mod_id_store.py", expires = "2027-01-01" }
+"Tuple" = { reason = "Conditional import in playwright_thread_manager.py", expires = "2027-01-01" }
+"tkinter" = { reason = "Conditional import in file_loader.py", expires = "2027-01-01" }
+"ttk" = { reason = "Conditional import in file_loader.py", expires = "2027-01-01" }
+"os" = { reason = "Conditional import in app_window.py and dialogs.py", expires = "2027-01-01" }
+
+# Per-file suppressions for hook files
+[tool.skylos.overrides."hook-tkinter.py"]
+whitelist = ["get_module_file_attribute", "sys", "hiddenimports"]
+
+# Per-file suppressions for Playwright thread manager
+[tool.skylos.overrides."src/services/playwright_thread_manager.py"]
+whitelist = ["PlaywrightThreadManager"]
+
+# Per-file suppressions for mod_downloader callback parameters
+[tool.skylos.overrides."src/services/mod_downloader.py"]
+whitelist = ["progress_callback", "mod_info", "progress_lock", "completed_count"]
+
+# Per-file suppressions for app_window event parameters
+[tool.skylos.overrides."src/ui/app_window.py"]
+whitelist = ["_event"]
+
+# Per-file suppressions for dialogs event parameters
+[tool.skylos.overrides."src/ui/dialogs.py"]
+whitelist = ["event"]
+
+# Quality gate settings
+[tool.skylos.gate]
+fail_on_critical = true
+max_security = 0
+max_quality = 20 # Allow more quality issues for complex UI code
+strict = false
