@@ -1,6 +1,10 @@
 # API and HTTP
 requests
 keyring
+keyrings.alt
+
+# Context managers (required by keyring)
+jaraco.context
 
 # Database and caching
 numpy  # For fingerprinting
@@ -13,3 +17,10 @@ pyinstaller
 
 # Optional utilities
 send2trash
+
+# Windows-specific dependencies for keyring
+pywin32; platform_system == 'Windows'
+
+# Linux build dependencies (system packages)
+# Install via: sudo apt install python3-tk libtk8.6 libtcl8.6
+# These are required for building Linux executables with tkinter support

@@ -10,6 +10,8 @@ import sys
 from pathlib import Path
 from typing import Optional
 
+from src.os_detector.platform_detector import PlatformDetector
+
 
 class PathManager:
     """Manage path resolution for the application."""
@@ -56,6 +58,13 @@ class PathManager:
     def log_path(self) -> str:
         """Get the log file path."""
         return self._log_path
+    
+    @property
+    def playwright_browsers_path(self) -> str:
+        """Get Playwright browsers path for current platform."""
+        detector = PlatformDetector()
+        browser_dir = detector.get_browser_directory_name()
+        return os.path.join(self._base_path, "playwright_browsers", "chromium-1208", browser_dir)
     
     # Theme name constants to avoid magic strings
     THEME_FOREST_LIGHT = "forest_light"

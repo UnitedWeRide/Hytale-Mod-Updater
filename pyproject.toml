@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "hytale-mod-updater"
-version = "1.0.0"
+version = "1.1.0"
 description = "Hytale Mod Updater - A tool to manage and update Hytale mods from CurseForge"
 readme = "README.md"
 requires-python = ">=3.8"
@@ -27,9 +27,12 @@ classifiers = [
 dependencies = [
     "requests",
     "keyring",
+    "keyrings.alt",
     "numpy",
     "playwright",
     "send2trash",
+    "jaraco.context",
+    "pywin32; platform_system == 'Windows'",  # For Windows keyring support
 ]
 
 [project.scripts]

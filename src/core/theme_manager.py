@@ -71,8 +71,9 @@ class ThemeManager:
         try:
             root = tk.Tk()
             root.withdraw()
-            # Check Windows registry for dark mode preference
+            
             if sys.platform == 'win32':
+                # Windows: Check registry
                 import winreg
                 try:
                     key = winreg.OpenKey(
@@ -85,10 +86,30 @@ class ThemeManager:
                     return "dark" if value == 0 else "light"
                 except (OSError, winreg.error) as e:
                     logger.warning("Failed to read Windows theme registry: %s", e)
+            
+            elif sys.platform == 'linux':
+                # Linux: Check GSettings (GNOME) or KDE environment
+                try:
+                    # Try GNOME/GTK
+                    import subprocess
+                    result = subprocess.run(
+                        ["gsettings", "get", "org.gnome.desktop.interface", "color-scheme"],
+                        capture_output=True,
+                        text=True,
+                        timeout=5
+                    )
+                    if result.returncode == 0:
+                        root.destroy()
+                        return "dark" if "dark" in result.stdout.lower() else "light"
+                except (subprocess.TimeoutExpired, FileNotFoundError, Exception) as e:
+                    logger.warning("Failed to read Linux theme: %s", e)
+            
+            # Default fallback
             root.destroy()
+            return "dark"
         except (tk.TclError, RuntimeError) as e:
             logger.warning("Failed to initialize Tk root for theme detection: %s", e)
-        return "dark"  # Default to dark
+        return "dark"
     
     def apply_theme(self, root: tk.Tk, theme_name: str = "forest", theme_mode: str = "auto") -> bool:
         """

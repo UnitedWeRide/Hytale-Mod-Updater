@@ -14,6 +14,8 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
+from src.os_detector.platform_detector import PlatformDetector
+
 
 def _get_playwright_driver_path() -> str:
     """
@@ -59,6 +61,7 @@ class PlaywrightDownloader:
         self.context = None
         self._playwright = None
         self._progress_callback = progress_callback
+        self._platform_detector = PlatformDetector()
     
     async def download_mod(self, mod_info: Dict[str, Any], progress_callback=None) -> Tuple[Optional[Path], str]:
         """
@@ -98,14 +101,13 @@ class PlaywrightDownloader:
                 logger.info("Launching Playwright Chromium browser (visible window for Cloudflare verification)")
                 # Launch browser in visible mode so user can complete Cloudflare verification
                 # Using full Chromium instead of headless shell for Cloudflare compatibility
+                browsers_path_env = os.environ.get("PLAYWRIGHT_BROWSERS_PATH", "")
+                browser_executable = self._platform_detector.get_browser_executable_path(
+                    Path(browsers_path_env) if browsers_path_env else Path.cwd()
+                )
                 browser = await p.chromium.launch(
                     headless=False,  # Visible window for user interaction
-                    executable_path=os.path.join(
-                        os.environ.get("PLAYWRIGHT_BROWSERS_PATH", ""),
-                        "chromium-1208",
-                        "chrome-win64",
-                        "chrome.exe"
-                    ) if os.environ.get("PLAYWRIGHT_BROWSERS_PATH") else None
+                    executable_path=str(browser_executable) if browsers_path_env else None
                 )
                 logger.info("Chromium browser launched successfully (visible window)")
                 

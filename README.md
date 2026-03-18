@@ -79,10 +79,18 @@ The application uses a centralized database approach where all Hytale mods are f
 
 ## System Requirements
 
+### Windows
 - **Operating System**: Windows 10/11 (64-bit)
-- **Python**: 3.8+ (for development)
+- **Python**: 3.10+ (the same interpreter used for development)
 - **RAM**: 4GB minimum, 8GB recommended
 - **Disk Space**: 500MB for the application, plus space for mods and database
+
+### Linux
+- **Operating System**: Ubuntu 20.04+ or other Debian-based distribution
+- **Python**: 3.10+ (the same interpreter used for development)
+- **RAM**: 4GB minimum, 8GB recommended
+- **Disk Space**: 500MB for the application, plus space for mods and database
+- **System Dependencies**: `python3-tk`, `libtk8.6`, `libtcl8.6`
 
 ## Installation
 
@@ -102,7 +110,7 @@ Before building the application, ensure you have:
 - pip package manager
 - Access to CurseForge API (for API key validation)
 
-### Building from Source
+### Building from Source (Windows)
 
 1. Clone or navigate to the project directory
 2. Activate your virtual environment:
@@ -115,7 +123,7 @@ Before building the application, ensure you have:
    ```
 4. Run the build script:
    ```powershell
-   python build.py
+   python build.py --platform windows
    ```
 
 The build script will:
@@ -129,10 +137,51 @@ The build script will:
 
 The executable will be created in the `dist/` directory as `HytaleModUpdater.exe`.
 
-### Running the Executable
+### Building from Source (Linux)
+
+1. Clone or navigate to the project directory
+2. Create and activate your virtual environment:
+   ```bash
+   python3 -m venv .venv
+   source .venv/bin/activate
+   ```
+3. Install system dependencies:
+   ```bash
+   sudo apt update
+   sudo apt install -y python3-tk libtk8.6 libtcl8.6
+   ```
+4. Install Python dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+5. Run the build script:
+   ```bash
+   python build.py --platform linux
+   ```
+
+The build script will:
+- Clean previous build artifacts
+- Install dependencies from requirements.txt
+- Install PyInstaller if not present
+- Download Playwright browser binaries (Linux version)
+- Download the Forest-ttk-theme
+- Create a Linux-specific PyInstaller spec file
+- Build the executable
+
+The executable will be created in the `dist/` directory as `HytaleModUpdater` (no .exe extension).
+
+**Note**: The Linux build requires tkinter support. If tkinter is not installed, the build script will attempt to install `python3-tk` automatically using `sudo apt`.
+
+### Running the Executable (Windows)
 
 1. Navigate to the `dist/` directory
 2. Run `HytaleModUpdater.exe`
+3. The first time you run the application, you will be prompted to enter a CurseForge API key
+
+### Running the Executable (Linux)
+
+1. Navigate to the `dist/` directory
+2. Run `./HytaleModUpdater`
 3. The first time you run the application, you will be prompted to enter a CurseForge API key
 
 **Note**: The executable is self-contained and does not require Python to be installed on the target machine. All dependencies are bundled within the executable.

@@ -31,15 +31,54 @@ class SettingsHandlers:
         """Open the settings panel."""
         settings_window = tk.Toplevel(self.app.root)
         settings_window.title("Settings")
-        settings_window.minsize(400, 300)
+        
+        # Responsive window size based on screen resolution
+        screen_width = settings_window.winfo_screenwidth()
+        screen_height = settings_window.winfo_screenheight()
+        window_width = int(screen_width * 0.4)  # 40% of screen width
+        window_height = int(screen_height * 0.8)  # 8% of screen height
+        settings_window.geometry(f"{window_width}x{window_height}")
+        settings_window.minsize(300, 250)  # Minimum size for usability
+        
+        # Center the window on screen
+        x = (screen_width // 2) - (window_width // 2)
+        y = (screen_height // 2) - (window_height // 2)
+        settings_window.geometry(f"+{x}+{y}")
         
         # Configure grid weights for proper resizing
         settings_window.grid_rowconfigure(0, weight=1)
         settings_window.grid_columnconfigure(0, weight=1)
         
-        # Main frame with grid layout
-        main_frame = ttk.Frame(settings_window, padding="10")
-        main_frame.grid(row=0, column=0, sticky="nsew")
+        # Create scrollable frame using canvas
+        canvas_frame = ttk.Frame(settings_window)
+        canvas_frame.grid(row=0, column=0, sticky="nsew")
+        canvas_frame.grid_columnconfigure(0, weight=1)
+        
+        # Create canvas and scrollbar
+        canvas = tk.Canvas(canvas_frame, highlightthickness=0)
+        scrollbar = ttk.Scrollbar(canvas_frame, orient="vertical", command=canvas.yview)
+        scrollable_frame = ttk.Frame(canvas)
+        
+        scrollable_frame.bind(
+            "<Configure>",
+            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+        )
+        
+        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar.set)
+        
+        # Bind mouse wheel for scrolling
+        canvas.bind_all("<MouseWheel>", self._on_settings_mouse_wheel)
+        
+        canvas.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+        
+        # Store canvas reference for cleanup
+        self._settings_canvas = canvas
+        
+        # Main frame with grid layout (inside scrollable frame)
+        main_frame = ttk.Frame(scrollable_frame, padding="10")
+        main_frame.pack(fill="both", expand=True)
         main_frame.grid_columnconfigure(0, weight=1)
         
         # Row counter for grid layout
@@ -265,6 +304,9 @@ class SettingsHandlers:
             command=lambda: self.save_settings(debug_var.get(), settings_window, close_terminal_var.get(), rate_limit_var.get(), only_stable_var.get(), ignore_beta_var.get(), full_speed_var.get(), automated_update_var.get(), restore_mods_var.get())
         )
         save_button.pack(side=tk.RIGHT)
+        
+        # Cleanup binding when window is destroyed
+        settings_window.bind("<Destroy>", lambda e: self._cleanup_settings_canvas())
     
     def _add_api_key(self, parent: tk.Toplevel):
         """Add API key."""
@@ -338,3 +380,27 @@ class SettingsHandlers:
         dialog.show()
         parent.destroy()
         self.open_settings()
+    
+    def _on_settings_mouse_wheel(self, event):
+        """Handle mouse wheel scrolling for settings canvas."""
+        canvas = getattr(self, '_settings_canvas', None)
+        if canvas:
+            try:
+                # Windows/Mac: event.delta is in multiples of 120
+                # Linux: event.num is 4 (up) or 5 (down)
+                if event.num == 5 or event.delta < 0:
+                    canvas.yview_scroll(1, "units")
+                else:
+                    canvas.yview_scroll(-1, "units")
+            except tk.TclError:
+                # Canvas has been destroyed, ignore scroll event
+                pass
+    
+    def _cleanup_settings_canvas(self):
+        """Clean up settings canvas binding when window is destroyed."""
+        if hasattr(self, '_settings_canvas'):
+            try:
+                self._settings_canvas.unbind_all("<MouseWheel>")
+            except tk.TclError:
+                pass
+            delattr(self, '_settings_canvas')
